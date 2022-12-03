@@ -2,32 +2,45 @@
 public class CourseRoster {
 
     public Course course;
-    public sortedLinkedList studentsRegistered;
+    public BST studentsRegistered;
+
 
     public CourseRoster(Course c){
-        studentsRegistered = new sortedLinkedList();
+        studentsRegistered = new BST();
         course = c;
     }
 
     public void addStudent(Student s){
-        studentsRegistered.insert(s);
+        if(course.getCount()<course.getLimit()) {
+            studentsRegistered.insert(s);
+            course.setCount(course.getCount()+1);
+        }
+        else {
+            course.addToWaitList(s);
+            System.out.println("\nStudent added to Waitlist");
+        }
     }
 
     public void removeStudent(Student s){
         studentsRegistered.delete(s);
+
+        if(!course.waitList.isEmpty()){
+            Student waiting = course.removeFromWaitList();
+
+            if(waiting.compareTo(s)!=0) {
+                course.setCount(course.getCount()-1);
+                addStudent(waiting);
+                System.out.println("\n" + waiting.getFirstName() + " " + waiting.getLastName() + " added to this course from waiting list.");
+            }else{
+                System.out.println("\n" + waiting.getFirstName() + " " + waiting.getLastName() +" removed from waitlist");
+            }
+        }else{
+            course.setCount(course.getCount()-1);
+        }
     }
 
-    public boolean findStudent(String id){
-        LLNode current = studentsRegistered.head.next;
-        while(current!=null){
-            Student s = (Student) current.getData();
-
-            if(s.getIDNo().compareTo(id)==0){
-                return true;
-            }
-            current = current.next;
-        }
-        return false;
+    public boolean findStudent(Student s){
+        return studentsRegistered.search(s);
     }
 
     @Override

@@ -1,10 +1,12 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+
 import java.util.Scanner;
 
 public class Registration {
     public static void main(String[] args) {
-        sortedLinkedList studentMaster = new sortedLinkedList();
+        BST studentMaster = new BST();
+
         CourseRoster[] courseMaster = new CourseRoster[4];
 
         Scanner in = null;
@@ -17,7 +19,7 @@ public class Registration {
 
                 String[] line = s.split("[\\s,]");
 
-                Student st = new Student(line[0],line[1],line[2]);
+                Student st = new Student(line[0].toUpperCase(),line[1].toUpperCase(),line[2].toUpperCase());
                 StudentRecord sr = new StudentRecord(st);
                 studentMaster.insert(sr);
             }
@@ -89,7 +91,11 @@ public class Registration {
 
 
         String id = "";
+        String firstName = "";
+        String lastName = "";
         String courseNum = "";
+        Student s = null;
+
         boolean studentFound = false;
         boolean courseFound = false;
         boolean quitFlag = false;
@@ -109,21 +115,29 @@ public class Registration {
 
             switch (option){
                 case 1:
-                    System.out.print("Enter student's ID Number: ");
-                     id = in.next();
+                    System.out.print("Enter student's First Name: ");
+                     firstName = in.next();
 
-                    System.out.print("Enter course number: ");
+                    System.out.print("Enter student's Last Name: ");
+                    lastName = in.next();
+
+                    System.out.print("Enter student's id number: ");
+                    id = in.next();
+
+                    System.out.print("Enter the course number you want to add to this student: ");
                     courseNum = in.next();
 
 
-                    LLNode current = studentMaster.head.next;
+                    s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),id);
+
+                    BSTNode current = studentMaster.root;
                     studentFound = false;
                     courseFound = false;
 
                     while(current!=null){
-                        StudentRecord sr = (StudentRecord) current.data;
+                        StudentRecord sr = (StudentRecord) current.getData();
 
-                        if(sr.student.getIDNo().compareTo(id)==0){
+                        if(sr.student.compareTo(s)==0){
                             studentFound = true;
 
                             for(int i=0;i< courseMaster.length;i++){
@@ -141,29 +155,40 @@ public class Registration {
                             }
 
                             if (!courseFound) System.out.println("\nCourse with this course number not found...\n");
+                            current = null;
                         }
-                        current = current.next;
+
+                        else if(sr.student.compareTo(s)>0) current = current.rightChild;
+                        else current = current.leftChild;
                     }
-                    if (!studentFound) System.out.println("\nInvalid Student ID...\n");
+                    if (!studentFound) System.out.println("\nStudent not found...\n");
                     break;
 
                 case 2:
+                    System.out.print("Enter student's First Name: ");
+                    firstName = in.next();
+
+                    System.out.print("Enter student's Last Name: ");
+                    lastName = in.next();
+
                     System.out.print("Enter student's ID Number: ");
                      id = in.next();
 
-                    System.out.print("Enter course number you want to drop: ");
+                    System.out.print("Enter course number you want to drop from this student: ");
                     courseNum = in.next();
 
-                    current = studentMaster.head.next;
+                    s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),id);
+
+                    current = studentMaster.root;
                     studentFound = false;
                     courseFound = false;
 
                     while(current!=null){
-                        StudentRecord sr = (StudentRecord) current.data;
+                        StudentRecord sr = (StudentRecord) current.getData();
 
-                        if(sr.student.getIDNo().compareTo(id)==0){
+                        if(sr.student.compareTo(s)==0){
                             studentFound = true;
-                            courseFound = sr.removeCourse(courseNum);     //removed course from studentRecord
+                            courseFound = sr.removeCourse(courseNum);     // removed course from studentRecord
 
                             if(courseFound){
                                 for(int i=0;i< courseMaster.length;i++){
@@ -175,31 +200,40 @@ public class Registration {
                             }else{
                                 System.out.println("\nCourse with this course number not found in this student record\n");
                             }
+                            current = null;
                         }
 
-                        current = current.next;
+                        else if(sr.student.compareTo(s)>0) current = current.rightChild;
+                        else current = current.leftChild;
                         }
 
-                    if (!studentFound) System.out.println("\nInvalid Student id\n");
+                    if (!studentFound) System.out.println("\nStudent not found\n");
                     break;
 
                 case 3:
                     System.out.print("Enter course number: ");
                     courseNum = in.next();
 
+                    System.out.print("Enter student's First Name: ");
+                    firstName = in.next();
+
+                    System.out.print("Enter student's Last Name: ");
+                    lastName = in.next();
+
                     System.out.print("Enter the id of the Student: ");
                     id = in.next();
 
+                    s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),id);
 
                     courseFound = false;
 
                     for(int i=0;i< courseMaster.length;i++){
                         if(courseMaster[i].course.getCourseNumber().compareTo(courseNum)==0){
                             courseFound = true;
-                            if(courseMaster[i].findStudent(id)) {
-                                System.out.println("Student found in this course..");
+                            if(courseMaster[i].findStudent(s)) {
+                                System.out.println("\nStudent found in this course..");
                             }else{
-                                System.out.println("Student was not found in this course");
+                                System.out.println("\nStudent was not found in this course");
                             }
                             break;
                         }
@@ -209,51 +243,71 @@ public class Registration {
                     break;
 
                 case 4:
+                    System.out.print("Enter student's First Name: ");
+                    firstName = in.next();
+
+                    System.out.print("Enter student's Last Name: ");
+                    lastName = in.next();
+
                     System.out.print("Enter the id of the Student: ");
                     id = in.next();
 
                     System.out.print("Enter course number: ");
                     courseNum = in.next();
 
-                    current = studentMaster.head.next;
+                    s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),id);
+
+                    current = studentMaster.root;
                     studentFound = false;
 
                     while(current!=null){
-                        StudentRecord sr = (StudentRecord) current.data;
+                        StudentRecord sr = (StudentRecord) current.getData();
 
-                        if(sr.student.getIDNo().compareTo(id)==0){
+                        if(sr.student.compareTo(s)==0){
                             studentFound = true;
                             if(sr.findCourse(courseNum)){
-                                System.out.println("This course is taken by this student.");
+                                System.out.println("\nThis course is taken by this student.");
                             }else{
-                                System.out.println("This course is not taken by this student");
+                                System.out.println("\nThis course is not taken by this student");
                             }
+                            current = null;
                             break;
                         }
 
-                        current = current.next;
+                        else if(sr.student.compareTo(s)>0) current = current.rightChild;
+                        else current = current.leftChild;
                     }
 
-                    if(!studentFound) System.out.println("Invalid Student id");
+                    if(!studentFound) System.out.println("Student not found");
 
                     break;
                 case 5:
+                    System.out.print("Enter student's First Name: ");
+                    firstName = in.next();
+
+                    System.out.print("Enter student's Last Name: ");
+                    lastName = in.next();
+
                     System.out.print("Enter student's ID: ");
                     id = in.next();
 
-                    LLNode current2 = studentMaster.head.next;
+                    s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),id);
+
+                    BSTNode current2 = studentMaster.root;
                     studentFound = false;
 
                     while(current2!=null){
-                        StudentRecord currRecord = (StudentRecord) current2.data;
-                        if(currRecord.student.getIDNo().compareTo(id)==0){
+                        StudentRecord currRecord = (StudentRecord) current2.getData();
+                        if(currRecord.student.compareTo(s)==0){
                             System.out.println(currRecord);
                             studentFound = true;
+                            current2 = null;
                             break;
                         }
-                        current2 = current2.next;
+                        else if(currRecord.student.compareTo(s)>0) current2 = current2.rightChild;
+                        else current2 = current2.leftChild;
                     }
-                    if(!studentFound) System.out.println("Student with given id not found");
+                    if(!studentFound) System.out.println("Student not found");
                     break;
 
                 case 6:
@@ -282,14 +336,7 @@ public class Registration {
                     break;
 
                 case 8:
-                    current = studentMaster.head.next;
-
-                    while(current!=null){
-                        StudentRecord rec = (StudentRecord) current.data;
-                        System.out.println(rec);
-                        current = current.next;
-                    }
-
+                    studentMaster.print(studentMaster.root);
                     break;
 
                 default:

@@ -1,24 +1,27 @@
 import java.util.Arrays;
+import java.util.Queue;
 
 public class StudentRecord implements Comparable<StudentRecord> {
     public Student student;
     public Course[] courseReg;
 
-    private int index;
+    private int count;
 
     public StudentRecord(Student s){
         student = s;
         courseReg = new Course[4];
-        index = 0;
+        count = 0;
     }
 
+
     public void addCourse(Course c){
-        if(index>=4){
+        if(count>=courseReg.length){
             System.out.println("Can't add more courses to this student!");
         }
-
-        courseReg[index] = c;
-        index++;
+        else {
+            courseReg[count] = c;
+            count++;
+        }
         //System.out.println("\n"+c+" successfully added to Student "+student);
     }
 
@@ -35,7 +38,7 @@ public class StudentRecord implements Comparable<StudentRecord> {
                         i++;
                     }
                     courseReg[i] = null;
-                    index--;
+                    count--;
                 //System.out.println("Course successfully removed");
                     return true;
             }
