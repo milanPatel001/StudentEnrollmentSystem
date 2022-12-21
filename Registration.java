@@ -1,11 +1,14 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Registration {
     public static void main(String[] args) {
         BST studentMaster = new BST();
+
+        sortedLinkedList[] studentMasterById = new sortedLinkedList[100];
 
         CourseRoster[] courseMaster = new CourseRoster[4];
 
@@ -22,6 +25,21 @@ public class Registration {
                 Student st = new Student(line[0].toUpperCase(),line[1].toUpperCase(),line[2].toUpperCase());
                 StudentRecord sr = new StudentRecord(st);
                 studentMaster.insert(sr);
+
+                String idNum = st.getIDNo();
+
+                StringBuilder lastTwoDigits = new StringBuilder();
+                lastTwoDigits.append(idNum.charAt(idNum.length()-2));
+                lastTwoDigits.append(idNum.charAt(idNum.length()-1));
+
+                int hash = Integer.parseInt(lastTwoDigits.toString())%100;
+
+
+                if (studentMasterById[hash] == null) {
+                    studentMasterById[hash] = new sortedLinkedList();
+                }
+                studentMasterById[hash].insert(sr);
+
             }
 
            // System.out.println(studentMaster);
@@ -96,6 +114,10 @@ public class Registration {
         String courseNum = "";
         Student s = null;
 
+        StringBuilder lastTwoDigits = null;
+
+        int input;
+
         boolean studentFound = false;
         boolean courseFound = false;
         boolean quitFlag = false;
@@ -115,99 +137,225 @@ public class Registration {
 
             switch (option){
                 case 1:
-                    System.out.print("Enter student's First Name: ");
-                     firstName = in.next();
+                    System.out.print("Type 0 to enter your name or Type 1 to enter your id number: ");
 
-                    System.out.print("Enter student's Last Name: ");
-                    lastName = in.next();
+                    try{
+                        input = in.nextInt();
 
-                    System.out.print("Enter student's id number: ");
-                    id = in.next();
+                        if(input==0){
+                            System.out.print("Enter student's First Name: ");
+                            firstName = in.next().toUpperCase();
 
-                    System.out.print("Enter the course number you want to add to this student: ");
-                    courseNum = in.next();
+                            System.out.print("Enter student's Last Name: ");
+                            lastName = in.next().toUpperCase();
+
+                            System.out.print("Enter the course number you want to add to this student: ");
+                            courseNum = in.next();
 
 
-                    s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),id);
+                            BSTNode current = studentMaster.root;
+                            studentFound = false;
+                            courseFound = false;
+                            s = new Student(firstName,lastName,"");
 
-                    BSTNode current = studentMaster.root;
-                    studentFound = false;
-                    courseFound = false;
+                            while(current!=null){
+                                StudentRecord sr = (StudentRecord) current.getData();
 
-                    while(current!=null){
-                        StudentRecord sr = (StudentRecord) current.getData();
+                                if(sr.student.getLastName().compareTo(lastName)==0 && sr.student.getFirstName().compareTo(firstName)==0){
+                                    studentFound = true;
 
-                        if(sr.student.compareTo(s)==0){
-                            studentFound = true;
+                                    for(int i=0;i< courseMaster.length;i++){
+                                        Course c = courseMaster[i].course;
+                                        if(c.getCourseNumber().compareTo(courseNum)==0){
 
-                            for(int i=0;i< courseMaster.length;i++){
-                                Course c = courseMaster[i].course;
-                                if(c.getCourseNumber().compareTo(courseNum)==0){
+                                            sr.addCourse(c);                         //adding course to studentRecord
+                                            courseMaster[i].addStudent(sr.student);  //adding student to courseRoster
 
-                                    sr.addCourse(c);                         //adding course to studentRecord
-                                    courseMaster[i].addStudent(sr.student);  //adding student to courseRoster
+                                            courseFound = true;
 
-                                    courseFound = true;
+                                            System.out.println("\n"+c.getCourseName() + " successfully added to "+ sr.student);
+                                            break;
+                                        }
+                                    }
 
-                                    System.out.println("\n"+c.getCourseName() + " successfully added to "+ sr.student);
+                                    if (!courseFound) System.out.println("\nCourse with this course number not found...\n");
+                                    current = null;
+                                }
+
+                                else if(sr.student.compareTo(s)>0) current = current.rightChild;
+                                else current = current.leftChild;
+                            }
+                            if (!studentFound) System.out.println("\nStudent not found...\n");
+
+                        }else if(input==1){
+                            System.out.print("Enter student's id number: ");
+                            id = in.next();
+
+                            System.out.print("Enter the course number you want to add to this student: ");
+                            courseNum = in.next();
+
+                            lastTwoDigits = new StringBuilder();
+
+                            if(id.length()!=1) lastTwoDigits.append(id.charAt(id.length()-2));
+                            lastTwoDigits.append(id.charAt(id.length()-1));
+
+                            int hash = Integer.parseInt(lastTwoDigits.toString())%100;
+
+
+                            if(studentMasterById[hash]==null){
+                                System.out.println("\nStudent with the given id not found...");
+                                break;
+                            }
+                            LLNode current = studentMasterById[hash].head.next;
+
+                            studentFound = false;
+                            courseFound = false;
+
+                            while(current!=null){
+                                StudentRecord sr = (StudentRecord) current.getData();
+
+                                if(sr.student.getIDNo().compareTo(id)==0){
+                                    studentFound = true;
+
+                                    for(int i=0;i< courseMaster.length;i++){
+                                        Course c = courseMaster[i].course;
+                                        if(c.getCourseNumber().compareTo(courseNum)==0){
+
+                                            sr.addCourse(c);                         //adding course to studentRecord
+                                            courseMaster[i].addStudent(sr.student);  //adding student to courseRoster
+
+                                            courseFound = true;
+
+                                            System.out.println("\n"+c.getCourseName() + " successfully added to "+ sr.student);
+                                            break;
+                                        }
+                                    }
+
+                                    if (!courseFound) System.out.println("\nCourse with this course number not found...\n");
+                                    current = null;
                                     break;
                                 }
+                                current = current.next;
                             }
-
-                            if (!courseFound) System.out.println("\nCourse with this course number not found...\n");
-                            current = null;
+                            if (!studentFound) System.out.println("\nStudent with the given id not found...\n");
+                        }else{
+                            System.out.println("You didn't type 0 or 1");
                         }
-
-                        else if(sr.student.compareTo(s)>0) current = current.rightChild;
-                        else current = current.leftChild;
+                    }catch (InputMismatchException ex){
+                        System.out.println("You didn't type a number");
+                    }catch (NumberFormatException e){
+                        System.out.println("Not a proper id format.");
                     }
-                    if (!studentFound) System.out.println("\nStudent not found...\n");
                     break;
 
                 case 2:
-                    System.out.print("Enter student's First Name: ");
-                    firstName = in.next();
 
-                    System.out.print("Enter student's Last Name: ");
-                    lastName = in.next();
+                    System.out.print("Type 0 to enter your name or Type 1 to enter your id number: ");
 
-                    System.out.print("Enter student's ID Number: ");
-                     id = in.next();
+                    try{
+                        input = in.nextInt();
 
-                    System.out.print("Enter course number you want to drop from this student: ");
-                    courseNum = in.next();
+                        if(input==0) {
+                            System.out.print("Enter student's First Name: ");
+                            firstName = in.next().toUpperCase();
 
-                    s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),id);
+                            System.out.print("Enter student's Last Name: ");
+                            lastName = in.next().toUpperCase();
 
-                    current = studentMaster.root;
-                    studentFound = false;
-                    courseFound = false;
+                            System.out.print("Enter course number you want to drop from this student: ");
+                            courseNum = in.next();
 
-                    while(current!=null){
-                        StudentRecord sr = (StudentRecord) current.getData();
+                            s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),"");
 
-                        if(sr.student.compareTo(s)==0){
-                            studentFound = true;
-                            courseFound = sr.removeCourse(courseNum);     // removed course from studentRecord
+                            BSTNode current = studentMaster.root;
+                            studentFound = false;
+                            courseFound = false;
 
-                            if(courseFound){
-                                for(int i=0;i< courseMaster.length;i++){
-                                    if(courseMaster[i].course.getCourseNumber().compareTo(courseNum)==0){
-                                        courseMaster[i].removeStudent(sr.student); //removed student from courseRoster
+                            while(current!=null){
+                                StudentRecord sr = (StudentRecord) current.getData();
+
+                                if(sr.student.getLastName().compareTo(lastName)==0 && sr.student.getFirstName().compareTo(firstName)==0){
+                                    studentFound = true;
+                                    courseFound = sr.removeCourse(courseNum);     // removed course from studentRecord
+
+                                    if(courseFound){
+                                        for(int i=0;i< courseMaster.length;i++){
+                                            if(courseMaster[i].course.getCourseNumber().compareTo(courseNum)==0){
+                                                courseMaster[i].removeStudent(sr.student); //removed student from courseRoster
+                                            }
+                                        }
+                                        System.out.println("Course successfully removed.");
+                                    }else{
+                                        System.out.println("\nCourse with this course number not found in this student record\n");
                                     }
+                                    current = null;
                                 }
-                                System.out.println("Course successfully removed.");
-                            }else{
-                                System.out.println("\nCourse with this course number not found in this student record\n");
+
+                                else if(sr.student.compareTo(s)>0) current = current.rightChild;
+                                else current = current.leftChild;
                             }
-                            current = null;
+
+                            if (!studentFound) System.out.println("\nStudent not found\n");
                         }
 
-                        else if(sr.student.compareTo(s)>0) current = current.rightChild;
-                        else current = current.leftChild;
-                        }
+                        else if(input==1){
 
-                    if (!studentFound) System.out.println("\nStudent not found\n");
+                            System.out.print("Enter student's ID Number: ");
+                            id = in.next();
+
+                            System.out.print("Enter course number you want to drop from this student: ");
+                            courseNum = in.next();
+
+                            lastTwoDigits = new StringBuilder();
+                            if(id.length()!=1) lastTwoDigits.append(id.charAt(id.length()-2));
+                            lastTwoDigits.append(id.charAt(id.length()-1));
+
+                            int hash = Integer.parseInt(lastTwoDigits.toString())%100;
+
+
+                            if(studentMasterById[hash]==null){
+                                System.out.println("\nStudent with the given id not found...");
+                                break;
+                            }
+                            LLNode current = studentMasterById[hash].head.next;
+
+                            studentFound = false;
+                            courseFound = false;
+
+                            while(current!=null){
+                                StudentRecord sr = (StudentRecord) current.getData();
+
+                                if(sr.student.getIDNo().compareTo(id)==0){
+                                    studentFound = true;
+                                    courseFound = sr.removeCourse(courseNum);     // removed course from studentRecord
+
+                                    if(courseFound){
+                                        for(int i=0;i< courseMaster.length;i++){
+                                            if(courseMaster[i].course.getCourseNumber().compareTo(courseNum)==0){
+                                                courseMaster[i].removeStudent(sr.student); //removed student from courseRoster
+                                            }
+                                        }
+                                        System.out.println("Course successfully removed.");
+                                    }else{
+                                        System.out.println("\nCourse with this course number not found in this student record\n");
+                                    }
+                                    current = null;
+                                    break;
+                                }
+                                current = current.next;
+                            }
+
+                            if (!studentFound) System.out.println("\nStudent with the given id not found...\n");
+                        }
+                        else{
+                            System.out.println("You didn't type 0 or 1");
+                        }
+                    }catch (InputMismatchException ex){
+                        System.out.println("You didn't type a number");
+                    }catch (NumberFormatException e){
+                        System.out.println("Not a proper id format.");
+                    }
+
                     break;
 
                 case 3:
@@ -243,44 +391,101 @@ public class Registration {
                     break;
 
                 case 4:
-                    System.out.print("Enter student's First Name: ");
-                    firstName = in.next();
 
-                    System.out.print("Enter student's Last Name: ");
-                    lastName = in.next();
+                    System.out.print("Type 0 to enter your name or Type 1 to enter your id number: ");
 
-                    System.out.print("Enter the id of the Student: ");
-                    id = in.next();
+                    try {
+                        input = in.nextInt();
 
-                    System.out.print("Enter course number: ");
-                    courseNum = in.next();
+                        if(input==0){
+                            System.out.print("Enter student's First Name: ");
+                            firstName = in.next().toUpperCase();
 
-                    s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),id);
+                            System.out.print("Enter student's Last Name: ");
+                            lastName = in.next().toUpperCase();
 
-                    current = studentMaster.root;
-                    studentFound = false;
+                            System.out.print("Enter course number: ");
+                            courseNum = in.next();
 
-                    while(current!=null){
-                        StudentRecord sr = (StudentRecord) current.getData();
+                            s = new Student(firstName.toUpperCase(),lastName.toUpperCase(),"");
 
-                        if(sr.student.compareTo(s)==0){
-                            studentFound = true;
-                            if(sr.findCourse(courseNum)){
-                                System.out.println("\nThis course is taken by this student.");
-                            }else{
-                                System.out.println("\nThis course is not taken by this student");
+                            BSTNode current = studentMaster.root;
+                            studentFound = false;
+
+                            while(current!=null){
+                                StudentRecord sr = (StudentRecord) current.getData();
+
+                                if(sr.student.getLastName().compareTo(lastName)==0 && sr.student.getFirstName().compareTo(firstName)==0){
+                                    studentFound = true;
+                                    if(sr.findCourse(courseNum)){
+                                        System.out.println("\nThis course is taken by this student.");
+                                    }else{
+                                        System.out.println("\nThis course is not taken by this student");
+                                    }
+                                    current = null;
+                                    break;
+                                }
+
+                                else if(sr.student.compareTo(s)>0) current = current.rightChild;
+                                else current = current.leftChild;
                             }
-                            current = null;
-                            break;
+
+                            if(!studentFound) System.out.println("Student not found");
+
+                        }
+                        else if(input==1){
+                            System.out.print("Enter the id of the Student: ");
+                            id = in.next();
+
+                            System.out.print("Enter course number: ");
+                            courseNum = in.next();
+
+                            lastTwoDigits = new StringBuilder();
+                            if(id.length()!=1) lastTwoDigits.append(id.charAt(id.length()-2));
+                            lastTwoDigits.append(id.charAt(id.length()-1));
+
+                            int hash = Integer.parseInt(lastTwoDigits.toString())%100;
+
+
+                            if(studentMasterById[hash]==null){
+                                System.out.println("\nStudent with the given id not found...");
+                                break;
+                            }
+                            LLNode current = studentMasterById[hash].head.next;
+
+                            studentFound = false;
+                            courseFound = false;
+
+                            while(current!=null){
+                                StudentRecord sr = (StudentRecord) current.getData();
+
+                                if(sr.student.getIDNo().compareTo(id)==0){
+                                    studentFound = true;
+                                    if(sr.findCourse(courseNum)){
+                                        System.out.println("\nThis course is taken by this student.");
+                                    }else{
+                                        System.out.println("\nThis course is not taken by this student");
+                                    }
+                                    current = null;
+                                    break;
+                                }
+                                current = current.next;
+                            }
+
+                            if (!studentFound) System.out.println("\nStudent with the given id not found...\n");
+
+                        }else{
+                            System.out.println("You didn't type 0 or 1");
                         }
 
-                        else if(sr.student.compareTo(s)>0) current = current.rightChild;
-                        else current = current.leftChild;
+                    }catch (InputMismatchException ex){
+                        System.out.println("You didn't type a number");
+                    }catch (NumberFormatException e){
+                        System.out.println("Not a proper id format.");
                     }
 
-                    if(!studentFound) System.out.println("Student not found");
-
                     break;
+
                 case 5:
                     System.out.print("Enter student's First Name: ");
                     firstName = in.next();
